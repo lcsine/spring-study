@@ -1,10 +1,7 @@
-package Test;
-
-import com.ydlclass.A;
-import com.ydlclass.User;
-import com.ydlclass.UserDao;
-import com.ydlclass.UserServers;
+import com.ydlclass.*;
 import com.ydlclass.dao.OrderDao;
+import com.ydlclass.env.MyPropertySource;
+import com.ydlclass.listener.*;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,6 +9,9 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.core.env.MutablePropertySources;
+
 @ImportResource("application.xml")
 public class TestIoc {
     private static final Logger log = LoggerFactory.getLogger(TestIoc.class);
@@ -84,7 +84,31 @@ public class TestIoc {
         log.warn("{}:{}",Thread.currentThread().getName(),bean);
 
     }
+    @Test
+    public void testEnv() {
+        AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
+        ConfigurableEnvironment environment = context.getEnvironment();
+        MutablePropertySources propertySources = environment.getPropertySources();
 
+        propertySources.addFirst(new MyPropertySource("myProperties"));
+        String property = environment.getProperty("myProperties");
+        context.refresh();
+        log.info("{}",property);
+    }
+    @Test
+    public void testValue() {
+        AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(Myconfig.class);
+        Myconfig bean =  context.getBean(Myconfig.class);
+
+        log.info("{}",bean);
+    }
+    @Test
+    public void testListener() {
+        AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(MessageListener.class, ContextFinish.class);
+
+        context.publishEvent(new OderEvent(new Order("123","tyb")));
+
+    }
 
 
 }
